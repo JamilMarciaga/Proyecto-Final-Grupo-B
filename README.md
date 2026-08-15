@@ -16,10 +16,10 @@ El sistema permite:
 
 | # | Nombre | Rol | Modulo |
 |---|--------|-----|--------|
-| 1 | [Tu Nombre] | Lider / Coordinador | Modelos de Datos y main.py |
-| 2 | [Nombre Compañero 2] | Desarrollador | Vista de Libros |
-| 3 | [Nombre Compañero 3] | Desarrollador | Vista de Clientes |
-| 4 | [Nombre Compañero 4] | Desarrollador | Vista de Prestamos |
+| 1 | Jamil Marciaga | Lider / Coordinador | Modelos de Datos y main.py |
+| 2 | Gilberto Cano | Desarrollador | Vista de Libros |
+| 3 | Esequiel Gonzalez | Desarrollador | Vista de Clientes |
+| 4 | Alexis Gonzalez | Desarrollador | Vista de Prestamos |
 
 ---
 
