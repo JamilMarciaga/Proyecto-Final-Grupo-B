@@ -29,7 +29,7 @@ class VistaLibros:
         self.txt_buscar = ft.TextField(
             label="Buscar libro",
             hint_text="Título, autor o ISBN",
-            prefix_icon=ft.Icons.SEARCH,
+            prefix_icon=ft.icons.SEARCH,
             expand=True,
             on_change=self.buscar_libro
         )
