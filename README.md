@@ -28,7 +28,7 @@ El sistema permite:
 | Tecnologia | Version | Proposito |
 |------------|---------|-----------|
 | Python | 3.8+ | Lenguaje de programacion |
-| Flet | 0.21+ | Framework para interfaz grafica |
+| Flet | 0.21.2 | Framework para interfaz grafica |
 | Git | Ultima | Control de versiones |
 | GitHub | - | Repositorio remoto |
 
