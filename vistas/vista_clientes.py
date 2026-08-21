@@ -1,16 +1,15 @@
 import flet as ft
 
 class VistaClientes:
-    def __init__(self, page, clientes):
+    def __init__(self, biblioteca, page):
+        self.biblioteca = biblioteca
         self.page = page
-        self.clientes = clientes
 
         self.txt_nombre = ft.TextField(label="Nombre", expand=True)
         self.txt_apellido = ft.TextField(label="Apellido", expand=True)
         self.txt_cedula = ft.TextField(label="Cédula/ID", expand=True)
         
         self.mensaje = ft.Text("")
-        
         self.lista_clientes = ft.ListView(expand=True, spacing=10)
 
     def registrar_cliente(self, e):
@@ -24,19 +23,13 @@ class VistaClientes:
             self.mensaje.update()
             return
 
-        for cliente in self.clientes:
-            if cliente.get("cedula") == cedula:
-                self.mensaje.value = "Ya existe un cliente con esa Cédula."
-                self.mensaje.color = ft.colors.RED
-                self.mensaje.update()
-                return
-
-        nuevo_cliente = {
-            "nombre": nombre,
-            "apellido": apellido,
-            "cedula": cedula
-        }
-        self.clientes.append(nuevo_cliente)
+        exito = self.biblioteca.agregar_cliente(nombre, apellido, cedula)
+        
+        if not exito:
+            self.mensaje.value = "Ya existe un cliente con esa Cédula."
+            self.mensaje.color = ft.colors.RED
+            self.mensaje.update()
+            return
 
         self.txt_nombre.value = ""
         self.txt_apellido.value = ""
@@ -49,11 +42,11 @@ class VistaClientes:
 
     def actualizar_lista(self):
         self.lista_clientes.controls.clear()
-        for cliente in self.clientes:
+        for cliente in self.biblioteca.clientes:
             self.lista_clientes.controls.append(
                 ft.ListTile(
-                    title=ft.Text(f"{cliente['nombre']} {cliente['apellido']}"),
-                    subtitle=ft.Text(f"Cédula: {cliente['cedula']}")
+                    title=ft.Text(f"{cliente.nombre} {cliente.apellido}"),
+                    subtitle=ft.Text(f"Cédula: {cliente.cedula}")
                 )
             )
         self.lista_clientes.update()
@@ -76,5 +69,4 @@ class VistaClientes:
             formulario,
             ft.Text("Lista de Clientes", size=20, weight=ft.FontWeight.BOLD),
             self.lista_clientes,
-            ft.ElevatedButton("Volver al Menú", icon=ft.icons.ARROW_BACK, on_click=self.page.volver_al_menu)
         ], expand=True, spacing=15)

@@ -17,23 +17,27 @@ def main(page: ft.Page):
     vista_clientes = VistaClientes(biblioteca, page)
     vista_prestamos = VistaPrestamos(biblioteca, page)
 
-    vista_clientes.callback_actualizar = vista_prestamos._actualizar_dropdowns
+    def al_cambiar_pestana(e):
+        if e.control.selected_index == 2:
+            vista_prestamos.actualizar_listas()
+            page.update()
 
     tabs = ft.Tabs(
         selected_index=0,
         animation_duration=300,
+        on_change=al_cambiar_pestana,
         tabs=[
             ft.Tab(
                 tab_content=ft.Row([ft.Icon(ft.icons.BOOK), ft.Text("Libros")]),
-                content=vista_libros.crear()
+                content=vista_libros.construir()
             ),
             ft.Tab(
                 tab_content=ft.Row([ft.Icon(ft.icons.PEOPLE), ft.Text("Clientes")]),
-                content=vista_clientes.crear()
+                content=vista_clientes.construir()
             ),
             ft.Tab(
                 tab_content=ft.Row([ft.Icon(ft.icons.LOCAL_LIBRARY), ft.Text("Prestamos")]),
-                content=vista_prestamos.crear()
+                content=vista_prestamos.construir()
             ),
         ],
         expand=True,

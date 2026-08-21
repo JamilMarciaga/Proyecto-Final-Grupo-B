@@ -1,27 +1,13 @@
 import flet as ft
 
 class VistaLibros:
-    def __init__(self, page, libros):
+    def __init__(self, biblioteca, page):
+        self.biblioteca = biblioteca
         self.page = page
-        self.libros = libros
 
-        self.txt_titulo = ft.TextField(
-            label="Título",
-            hint_text="Ingrese el título del libro",
-            expand=True
-        )
-
-        self.txt_autor = ft.TextField(
-            label="Autor",
-            hint_text="Ingrese el autor",
-            expand=True
-        )
-
-        self.txt_isbn = ft.TextField(
-            label="ISBN",
-            hint_text="Ingrese el ISBN",
-            expand=True
-        )
+        self.txt_titulo = ft.TextField(label="Título", hint_text="Ingrese el título del libro", expand=True)
+        self.txt_autor = ft.TextField(label="Autor", hint_text="Ingrese el autor", expand=True)
+        self.txt_isbn = ft.TextField(label="ISBN", hint_text="Ingrese el ISBN", expand=True)
 
         self.txt_buscar = ft.TextField(
             label="Buscar libro",
@@ -32,32 +18,23 @@ class VistaLibros:
         )
 
         self.filtro_estado = ft.Dropdown(
-            label="Filtrar por estado",
-            width=200,
+            label="Filtrar por estado", width=200,
             options=[
                 ft.dropdown.Option(key="Todos", text="Todos"),
                 ft.dropdown.Option(key="Disponible", text="Disponible"),
                 ft.dropdown.Option(key="Prestado", text="Prestado")
             ],
-            value="Todos",
-            on_change=self.cambiar_filtro
+            value="Todos", on_change=self.cambiar_filtro
         )
 
         self.mensaje = ft.Text("")
-
         self.total_libros = ft.Text("Total: 0", weight=ft.FontWeight.BOLD)
         self.total_disponibles = ft.Text("Disponibles: 0", weight=ft.FontWeight.BOLD)
         self.total_prestados = ft.Text("Prestados: 0", weight=ft.FontWeight.BOLD)
 
         self.lista_libros = ft.ListView(expand=True, spacing=10)
-
         self.texto_busqueda = ""
         self.estado_filtro = "Todos"
-
-    def obtener_valor(self, libro, atributo, defecto=""):
-        if isinstance(libro, dict):
-            return libro.get(atributo, defecto)
-        return getattr(libro, atributo, defecto)
 
     def registrar_libro(self, e):
         titulo = self.txt_titulo.value.strip()
@@ -68,20 +45,10 @@ class VistaLibros:
             self.mostrar_mensaje("Debe completar todos los campos.", True)
             return
 
-        for libro in self.libros:
-            isbn_existente = self.obtener_valor(libro, "isbn")
-            if str(isbn_existente).strip().lower() == isbn.lower():
-                self.mostrar_mensaje("Ya existe un libro con ese ISBN.", True)
-                return
-
-        nuevo_libro = {
-            "titulo": titulo,
-            "autor": autor,
-            "isbn": isbn,
-            "estado": "Disponible",
-            "cliente": None
-        }
-        self.libros.append(nuevo_libro)
+        exito = self.biblioteca.agregar_libro(titulo, autor, isbn)
+        if not exito:
+            self.mostrar_mensaje("Ya existe un libro con ese ISBN.", True)
+            return
 
         self.txt_titulo.value = ""
         self.txt_autor.value = ""
@@ -99,20 +66,16 @@ class VistaLibros:
         self.actualizar_lista()
 
     def crear_tarjeta_libro(self, libro):
-        titulo = self.obtener_valor(libro, "titulo", "Sin título")
-        autor = self.obtener_valor(libro, "autor", "Sin autor")
-        isbn = self.obtener_valor(libro, "isbn", "Sin ISBN")
-        estado = self.obtener_valor(libro, "estado", "Disponible")
-        cliente = self.obtener_valor(libro, "cliente", None)
-
         informacion = [
-            ft.Text(titulo, size=18, weight=ft.FontWeight.BOLD),
-            ft.Text(f"Autor: {autor}"),
-            ft.Text(f"ISBN: {isbn}"),
-            ft.Text(f"Estado: {estado}", weight=ft.FontWeight.BOLD)
+            ft.Text(libro.titulo, size=18, weight=ft.FontWeight.BOLD),
+            ft.Text(f"Autor: {libro.autor}"),
+            ft.Text(f"ISBN: {libro.isbn}"),
+            ft.Text(f"Estado: {libro.estado}", weight=ft.FontWeight.BOLD)
         ]
-        if cliente:
-            informacion.append(ft.Text(f"Prestado a: {cliente}"))
+        if libro.cliente_asignado:
+            cliente = self.biblioteca.buscar_cliente_por_cedula(libro.cliente_asignado)
+            nombre_cliente = f"{cliente.nombre} {cliente.apellido}" if cliente else "Desconocido"
+            informacion.append(ft.Text(f"Prestado a: {nombre_cliente}"))
 
         return ft.Card(
             content=ft.Container(
@@ -123,15 +86,11 @@ class VistaLibros:
 
     def actualizar_lista(self):
         self.lista_libros.controls.clear()
-        disponibles = 0
-        prestados = 0
+        disponibles = prestados = 0
 
-        for libro in self.libros:
-            titulo = str(self.obtener_valor(libro, "titulo", ""))
-            autor = str(self.obtener_valor(libro, "autor", ""))
-            isbn = str(self.obtener_valor(libro, "isbn", ""))
-            estado = str(self.obtener_valor(libro, "estado", "Disponible"))
-
+        for libro in self.biblioteca.libros:
+            estado = libro.estado
+            
             if estado == "Disponible":
                 disponibles += 1
             elif estado == "Prestado":
@@ -140,13 +99,13 @@ class VistaLibros:
             if self.estado_filtro != "Todos" and estado != self.estado_filtro:
                 continue
 
-            texto = f"{titulo} {autor} {isbn}".lower()
+            texto = f"{libro.titulo} {libro.autor} {libro.isbn}".lower()
             if self.texto_busqueda and self.texto_busqueda not in texto:
                 continue
 
             self.lista_libros.controls.append(self.crear_tarjeta_libro(libro))
 
-        self.total_libros.value = f"Total: {len(self.libros)}"
+        self.total_libros.value = f"Total: {len(self.biblioteca.libros)}"
         self.total_disponibles.value = f"Disponibles: {disponibles}"
         self.total_prestados.value = f"Prestados: {prestados}"
 
@@ -186,5 +145,4 @@ class VistaLibros:
             filtros,
             ft.Text("Inventario de libros", size=20, weight=ft.FontWeight.BOLD),
             self.lista_libros,
-            ft.ElevatedButton("Volver al Menú", icon=ft.icons.ARROW_BACK, on_click=self.page.volver_al_menu)
         ], expand=True, spacing=15)
